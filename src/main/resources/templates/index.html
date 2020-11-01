@@ -1,13 +1,45 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+
 <head>
     <meta charset="UTF-8">
-    <title>Taskr</title>
+    <title>taskr</title>
 </head>
 <body>
-    <h3>Your tasks at the moment are : </h3>
-    <ul>
-        <li th:each="task : ${userTasks}"><span th:text="${task.creationDateTime} + ' - ' + ${task.priority} + ' - ' + ${task.name} + ' - ' + ${task.description}" ></span></li>
-    </ul>
+<div class="alert alert-info" role="alert">
+    <h3>taskr - Your tasks at the moment are : </h3>
+</div>
+<ul>
+    <li th:each="task : ${userTasks}">
+        <div class="alert alert-warning" role="alert" style="margin-right: 30px;">
+            <b><span th:text="${task.creationDateTime}"></span></b>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><span th:text="${task.name}"></span>
+                        <span th:switch="${task.priority.name()}">
+                        <span th:case="'HIGH'" class="badge badge-danger" th:text="${task.priority}"></span>
+                        <span th:case="'MEDIUM'" class="badge badge-secondary" th:text="${task.priority}"></span>
+                        <span th:case="'LOW'" class="badge badge-warning" th:text="${task.priority}"></span>
+                    </span>
+                    </h5>
+                    <span th:text="${task.description}"></span>
+                </div>
+            </div>
+        </div>
+    </li>
+</ul>
 </body>
 </html>
