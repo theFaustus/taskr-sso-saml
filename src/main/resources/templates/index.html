@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Taskr</title>
+</head>
+<body>
+    <h3>Your tasks at the moment are : </h3>
+    <ul>
+        <li th:each="task : ${userTasks}"><span th:text="${task.creationDateTime} + ' - ' + ${task.priority} + ' - ' + ${task.name} + ' - ' + ${task.description}" ></span></li>
+    </ul>
+</body>
+</html>
