@@ -20,7 +20,7 @@ public class TaskrSsoSamlApplication {
 	@Bean
 	public CommandLineRunner commandLineRunner(TaskRepository taskRepository, UserRepository userRepository){
 		return args -> {
-			User user = userRepository.save(new User("johndoe", "john", "doe", 25));
+			User user = userRepository.save(new User("thejohndoe", "john", "doe", 25));
 			taskRepository.save(new Task("Read!", "Start reading, at least 30 minutes per day", Priority.HIGH, user));
 			taskRepository.save(new Task("Workout", "Need to workout", Priority.HIGH, user));
 			taskRepository.save(new Task("Meditate", "Get some mindfulness", Priority.MEDIUM, user));

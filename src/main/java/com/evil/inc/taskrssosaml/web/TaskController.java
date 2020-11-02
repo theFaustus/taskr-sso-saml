@@ -5,6 +5,8 @@ import com.evil.inc.taskrssosaml.domain.Task;
 import com.evil.inc.taskrssosaml.service.TaskService;
 import com.evil.inc.taskrssosaml.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,8 +25,10 @@ public class TaskController {
 
     @GetMapping
     public ModelAndView tasks(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         ModelAndView modelAndView = new ModelAndView("tasks");
-        modelAndView.addObject("userTasks", taskService.getTasksByUsername("johndoe"));
+        modelAndView.addObject("userName", authentication.getName());
+        modelAndView.addObject("userTasks", taskService.getTasksByUsername(authentication.getName()));
         modelAndView.addObject("priorities", Priority.values());
         modelAndView.addObject("task", new Task());
         return modelAndView;
@@ -32,7 +36,8 @@ public class TaskController {
 
     @PostMapping("/add")
     public ModelAndView addTask(@ModelAttribute Task task){
-        task.setUser(userService.getByUsername("johndoe"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        task.setUser(userService.getByUsername(authentication.getName()));
         taskService.addTask(task);
         return new ModelAndView("redirect:/");
     }
