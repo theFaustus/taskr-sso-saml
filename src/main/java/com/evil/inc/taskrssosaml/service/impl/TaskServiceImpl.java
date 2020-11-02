@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -27,6 +28,13 @@ class TaskServiceImpl implements TaskService {
     @Override
     public List<Task> getTasksByUsername(String username) {
         User user = userRepository.findByUsername(username);
-        return taskRepository.findAllByUserId(user.getId());
+        List<Task> allByUserId = taskRepository.findAllByUserId(user.getId());
+        allByUserId.sort(Comparator.comparing(Task::getCreationDateTime).reversed());
+        return allByUserId;
+    }
+
+    @Override
+    public void deleteTaskById(long id) {
+        taskRepository.deleteById(id);
     }
 }
