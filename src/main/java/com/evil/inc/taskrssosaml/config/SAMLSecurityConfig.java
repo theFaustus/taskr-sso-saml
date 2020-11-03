@@ -6,7 +6,6 @@ import org.opensaml.saml2.metadata.provider.HTTPMetadataProvider;
 import org.opensaml.saml2.metadata.provider.MetadataProvider;
 import org.opensaml.saml2.metadata.provider.MetadataProviderException;
 import org.opensaml.xml.parse.StaticBasicParserPool;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -14,10 +13,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.access.AccessDecisionVoter;
-import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -30,7 +25,6 @@ import org.springframework.security.saml.SAMLLogoutFilter;
 import org.springframework.security.saml.SAMLLogoutProcessingFilter;
 import org.springframework.security.saml.SAMLProcessingFilter;
 import org.springframework.security.saml.context.SAMLContextProviderImpl;
-import org.springframework.security.saml.context.SAMLContextProviderLB;
 import org.springframework.security.saml.key.JKSKeyManager;
 import org.springframework.security.saml.key.KeyManager;
 import org.springframework.security.saml.log.SAMLDefaultLogger;
@@ -59,7 +53,6 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
-import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -80,14 +73,11 @@ import java.util.Timer;
 @ComponentScan(basePackages = {"org.springframework.security.saml", "com.evil.inc.taskrssosaml"})
 public class SAMLSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    private final String idpMetadataUrl = "https://idp.ssocircle.com/idp-meta.xml";
     @Value("${taskr.entityId}")
     private String entityId;
-
     @Value("${taskr.entityBaseUrl}")
     private String entityBaseUrl;
-
-    private final String idpMetadataUrl = "https://idp.ssocircle.com/idp-meta.xml";
-
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -106,7 +96,9 @@ public class SAMLSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public SAMLContextProviderImpl contextProvider() {
-        return new SAMLContextProviderImpl();
+        SAMLContextProviderImpl samlContextProvider = new SAMLContextProviderImpl();
+        samlContextProvider.setStorageFactory(emptyStorageFactory());
+        return samlContextProvider;
     }
 
     /**
@@ -118,14 +110,13 @@ public class SAMLSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        http
-                .authorizeRequests()
+        http.authorizeRequests()
+                .antMatchers("/**").fullyAuthenticated()
                 .antMatchers("/saml/**").permitAll()
                 .anyRequest()
                 .authenticated();
+        http.exceptionHandling().defaultAuthenticationEntryPointFor(samlEntryPoint(), new AntPathRequestMatcher("/"));
         http.csrf().disable();
-
-        http.exceptionHandling().authenticationEntryPoint(samlEntryPoint());
 
         http.addFilterBefore(metadataGeneratorFilter(), ChannelProcessingFilter.class);
         http.addFilterAfter(samlFilter(), BasicAuthenticationFilter.class);
@@ -141,6 +132,7 @@ public class SAMLSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web.ignoring()
                 .antMatchers("/templates/**")
+                .antMatchers("/login")
                 .antMatchers("/static/**");
     }
 
@@ -280,7 +272,7 @@ public class SAMLSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public SimpleUrlLogoutSuccessHandler successLogoutHandler() {
         SimpleUrlLogoutSuccessHandler simpleUrlLogoutSuccessHandler = new SimpleUrlLogoutSuccessHandler();
-        simpleUrlLogoutSuccessHandler.setDefaultTargetUrl("/");
+        simpleUrlLogoutSuccessHandler.setDefaultTargetUrl("/login");
         simpleUrlLogoutSuccessHandler.setAlwaysUseDefaultTargetUrl(true);
         return simpleUrlLogoutSuccessHandler;
     }
